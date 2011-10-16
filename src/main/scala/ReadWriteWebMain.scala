@@ -12,7 +12,7 @@ import org.clapper.argot._
 import ArgotConverters._
 object ReadWriteWebMain {
 
-  val logger:Logger = LoggerFactory.getLogger(this.getClass)
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   val postUsageMsg= Some("""
   |PROPERTIES
@@ -31,56 +31,56 @@ object ReadWriteWebMain {
   val parser = new ArgotParser("read-write-web",postUsage=postUsageMsg)
 
   val mode = parser.option[RWWMode](List("mode"), "m", "wiki mode: wiki or strict") {
-      (sValue, opt) =>
-        sValue match {
-          case "wiki" => AllResourcesAlreadyExist
-          case "strict" => ResourcesDontExistByDefault
-          case _ => throw new ArgotConversionException("Option %s: must be either wiki or strict" format (opt.name, sValue))
-        }
+    (sValue, opt) =>
+      sValue match {
+        case "wiki" => AllResourcesAlreadyExist
+        case "strict" => ResourcesDontExistByDefault
+        case _ => throw new ArgotConversionException("Option %s: must be either wiki or strict" format (opt.name, sValue))
       }
+    }
 
-    val rdfLanguage = parser.option[String](List("language"), "l", "RDF language: n3, turtle, or rdfxml") {
-      (sValue, opt) =>
-        sValue match {
-          case "n3" => "N3"
-          case "turtle" => "N3"
-          case "rdfxml" => "RDF/XML-ABBREV"
-          case _ => throw new ArgotConversionException("Option %s: must be either n3, turtle or rdfxml" format (opt.name, sValue))
+  val rdfLanguage = parser.option[Lang](List("language"), "l", "RDF language") {
+    (sValue, opt) =>
+      sValue match {
+        case "n3" => N3
+        case "turtle" => TURTLE
+        case "rdfxml" => RDFXML
+        case _ => throw new ArgotConversionException("Option %s: must be either n3, turtle or rdfxml" format (opt.name, sValue))
       }
   }
 
     val httpPort = parser.option[Int]("http", "Port","start the http server on port")
     val httpsPort = parser.option[Int]("https","port","start the https server on port")
 
-    val rootDirectory = parser.parameter[File]("rootDirectory", "root directory", false) {
-      (sValue, opt) => {
-        val file = new File(sValue)
-        if (! file.exists)
-          throw new ArgotConversionException("Option %s: %s must be a valid path" format (opt.name, sValue))
-        else
-          file
+  val rootDirectory = parser.parameter[File]("rootDirectory", "root directory", false) {
+    (sValue, opt) => {
+      val file = new File(sValue)
+      if (! file.exists)
+        throw new ArgotConversionException("Option %s: %s must be a valid path" format (opt.name, sValue))
+      else
+        file
     }
-    }
+  }
 
    implicit val webCache = new WebCache()
 
-   val baseURL = parser.parameter[String]("baseURL", "base URL", false)
+  val baseURL = parser.parameter[String]("baseURL", "base URL", false)
 
   // regular Java main
   def main(args: Array[String]) {
 
     try {
-       parser.parse(args)
-     } catch {
+      parser.parse(args)
+    } catch {
       case e: ArgotUsageException => err.println(e.message); sys.exit(1)
     }
 
     val filesystem =
-        new Filesystem(
-          rootDirectory.value.get,
-          baseURL.value.get,
-          lang=rdfLanguage.value getOrElse "N3")(mode.value getOrElse ResourcesDontExistByDefault)
-
+      new Filesystem(
+        rootDirectory.value.get,
+        baseURL.value.get,
+        lang=rdfLanguage.value getOrElse RDFXML)(mode.value getOrElse ResourcesDontExistByDefault)
+    
     val app = new ReadWriteWeb(filesystem, new RDFAuthZ(webCache,filesystem))
 
     //this is incomplete: we should be able to start both ports.... not sure how to do this yet.
@@ -92,11 +92,11 @@ object ReadWriteWebMain {
     // configures and launches a Jetty server
     service.filter(new FilterLogger(logger)).
       context("/public"){ ctx:ContextBuilder =>
-      ctx.resources(ClasspathUtils.fromClasspath("public/").toURI.toURL)
+        ctx.resources(ClasspathUtils.fromClasspath("public/").toURI.toURL)
     }.
       filter(app.plan).
       filter(new X509view().plan).run()
-
+    
   }
 
 }

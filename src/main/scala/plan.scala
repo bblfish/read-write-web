@@ -21,15 +21,18 @@ import Query.{QueryTypeSelect => SELECT,
 
 import scalaz._
 
-class ReadWriteWeb(rm: ResourceManager, implicit val authz: AuthZ = NullAuthZ) {
+//object ReadWriteWeb {
+//
+//  val defaultHandler: PartialFunction[Throwable, HttpResponse[_]] = {
+//    case t => InternalServerError ~> ResponseString(t.getStackTraceString)
+//  }
+//
+//}
+
+class ReadWriteWeb(rm: ResourceManager, implicit val authz: AuthZ = NullAuthZ)  {
   
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def isHTML(accepts: List[String]): Boolean = {
-    val accept = accepts.headOption
-    accept == Some("text/html") || accept == Some("application/xhtml+xml")
-  }
-  
   /** I believe some documentation is needed here, as many different tricks
    *  are used to make this code easy to read and still type-safe
    *  
@@ -58,7 +61,7 @@ class ReadWriteWeb(rm: ResourceManager, implicit val authz: AuthZ = NullAuthZ) {
       val Authoritative(uri, representation) = req
       val r: Resource = rm.resource(uri)
       req match {
-        case GET(_) & Accept(accepts) if isHTML(accepts) => {
+        case GET(_) if representation == HTMLRepr => {
           val source = Source.fromFile("src/main/resources/skin.html")("UTF-8")
           val body = source.getLines.mkString("\n")
           Ok ~> ViaSPARQL ~> ContentType("text/html") ~> ResponseString(body)
@@ -76,6 +79,12 @@ class ReadWriteWeb(rm: ResourceManager, implicit val authz: AuthZ = NullAuthZ) {
               case HEAD(_) => Ok ~> ViaSPARQL ~> ContentType(lang.contentType)
             }
           }
+        case PUT(_) & RequestLang(lang) if representation == DirectoryRepr => {
+          for {
+            bodyModel <- modelFromInputStream(Body.stream(req), uri, lang) failMap { t => BadRequest ~> ResponseString(t.getStackTraceString) }
+            _ <- r.createDirectory(bodyModel) failMap { t => InternalServerError ~> ResponseString(t.getStackTraceString) }
+          } yield Created
+        }
         case PUT(_) & RequestLang(lang) =>
           for {
             bodyModel <- modelFromInputStream(Body.stream(req), uri, lang) failMap { t => BadRequest ~> ResponseString(t.getStackTraceString) }

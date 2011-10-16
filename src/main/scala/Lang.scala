@@ -38,7 +38,7 @@ sealed trait Lang {
     case TURTLE => "TURTLE"
     case N3 => "N3"
   }
-  
+
 }
 
 object Lang {
@@ -55,7 +55,7 @@ object Lang {
       case "text/turtle" => Some(TURTLE)
       case "application/rdf+xml" => Some(RDFXML)
       case _ => None
-  }
+  }    
   
   def apply(cts: Iterable[String]): Option[Lang] =
     cts map Lang.apply collectFirst { case Some(lang) => lang }

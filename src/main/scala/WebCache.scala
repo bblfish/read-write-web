@@ -74,6 +74,10 @@ class WebCache extends ResourceManager {
 
     }
 
-    def save(model: Model) = { throw new MethodNotSupportedException("not implemented"); null }
+    // when fetching information from the web creating directories does not make sense
+    //perhaps the resource manager should be split into read/write sections?
+    def save(model: Model) =  throw new MethodNotSupportedException("not implemented")
+
+    def createDirectory(model: Model) =  throw new MethodNotSupportedException("not implemented")
   }
 }

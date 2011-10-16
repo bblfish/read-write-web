@@ -59,7 +59,7 @@ class WebCache extends ResourceManager {
       val handler: Handler[Validation[Throwable, Model]] = request.>+>[Validation[Throwable, Model]](res =>  {
         res >:> { headers =>
           val encoding = headers("Content-Type").headOption match {
-            case Some(mime) => Lang.apply(mime)
+            case Some(mime) => Lang(mime) getOrElse Lang.default
             case None => RDFXML  // it would be better to try to do a bit of guessing in this case by looking at content
           }
           val loc = headers("Content-Location").headOption match {

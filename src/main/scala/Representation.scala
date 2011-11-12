@@ -1,3 +1,4 @@
+
 package org.w3.readwriteweb
 
 import unfiltered.request._
@@ -18,6 +19,7 @@ object Representation {
     }
   }
   
+
   val htmlContentTypes = Set("text/html", "application/xhtml+xml")
   
   def acceptsHTML(ct: Iterable[String]) =

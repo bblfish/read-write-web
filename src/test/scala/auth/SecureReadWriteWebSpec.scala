@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2011 Henry Story (bblfish.net)
- * under the MIT licence defined
+ * under the MIT licence defined at
  *    http://www.opensource.org/licenses/mit-license.html
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -21,19 +21,22 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.w3.readwriteweb
+package org.w3.readwriteweb.auth
 
-import unfiltered.request._
+import org.specs.Specification
 
-object RequestLang {
-  
-  def apply(req: HttpRequest[_]): Option[Lang] =
-    Lang(RequestContentType(req))
+/**
+ * @author hjs
+ * @created: 25/10/2011
+ */
 
-  def unapply(req: HttpRequest[_]): Option[Lang] =
-    apply(req)
+object SecureReadWriteWebSpec extends Specification {
+  try {
+  "The Secure Read Write Web".isSpecifiedBy(
+     CreateWebIDSpec
+   )
+  } catch {
+    case e => e.printStackTrace(System.out)
+  }
 
-  def unapply(ct: String): Option[Lang] =
-    Lang(ct)
-    
 }

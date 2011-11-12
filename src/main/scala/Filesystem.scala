@@ -5,10 +5,10 @@ import org.w3.readwriteweb.util._
 import java.io._
 import java.net.URL
 import org.slf4j.{Logger, LoggerFactory}
-import com.hp.hpl.jena.rdf.model._
+import com.hp.hpl.jena.rdf.model.{Resource=>JResource,_}
 import com.hp.hpl.jena.shared.JenaException
 
-import scalaz.{sys => _, _}
+import scalaz.{Resource => SzResource, sys => _,  _}
 import Scalaz._
 
 class Filesystem(
@@ -20,7 +20,7 @@ class Filesystem(
   
   def sanityCheck(): Boolean =
     baseDirectory.exists && baseDirectory.isDirectory
-  
+
   def resource(url: URL): Resource = new Resource {
     val relativePath: String = url.getPath.replaceAll("^"+basePath.toString+"/?", "")
     val fileOnDisk = new File(baseDirectory, relativePath)
@@ -46,10 +46,17 @@ class Filesystem(
     
     def get(): Validation[Throwable, Model] = {
       val model = ModelFactory.createDefaultModel()
+      val guessLang = fileOnDisk.getName match {
+        case Authoritative.r(_,suffix) => Representation.fromSuffix(suffix) match {
+          case RDFRepr(rdfLang) => rdfLang
+          case _ => lang
+        }
+        case _ => lang
+      }
       if (fileOnDisk.exists()) {
         val fis = new FileInputStream(fileOnDisk)
         try {
-          val reader = model.getReader(lang.jenaLang)
+          val reader = model.getReader(guessLang.jenaLang)
           reader.read(model, fis, url.toString)
         } catch {
           case je: JenaException => throw je

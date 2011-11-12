@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2011 Henry Story (bblfish.net)
- * under the MIT licence defined
+ * under the MIT licence defined at
  *    http://www.opensource.org/licenses/mit-license.html
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of 
  * this software and associated documentation files (the "Software"), to deal in the
  * Software without restriction, including without limitation the rights to use, copy,
  * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
@@ -21,19 +21,38 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.w3.readwriteweb
+package org.w3.readwriteweb.util
 
-import unfiltered.request._
+import java.io.{IOException, OutputStream, InputStream}
 
-object RequestLang {
+
+/**
+ * Wrap an inputstream and write everything that comes in here
+ * @author hjs
+ * @created: 30/10/2011
+ */
+
+class SpyInputStream(val in: InputStream, val out: OutputStream) extends InputStream {
+  var stopOut = false
   
-  def apply(req: HttpRequest[_]): Option[Lang] =
-    Lang(RequestContentType(req))
+  def read() ={
 
-  def unapply(req: HttpRequest[_]): Option[Lang] =
-    apply(req)
-
-  def unapply(ct: String): Option[Lang] =
-    Lang(ct)
-    
+    val i = try {
+       in.read()
+   } catch {
+      case ioe: IOException => {
+        out.close()
+        stopOut=true
+        throw ioe;
+      }
+    }
+    if (!stopOut) try {
+      out.write(i)
+    } catch {
+      case ioe: IOException => {
+        stopOut = true
+      }
+    }
+    i
+  }
 }

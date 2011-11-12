@@ -23,17 +23,31 @@
 
 package org.w3.readwriteweb
 
-import unfiltered.request._
+import unfiltered.request.Path
+import unfiltered.response.{ResponseString, PlainTextContent, ContentType, Ok}
+import io.BufferedSource
 
-object RequestLang {
-  
-  def apply(req: HttpRequest[_]): Option[Lang] =
-    Lang(RequestContentType(req))
 
-  def unapply(req: HttpRequest[_]): Option[Lang] =
-    apply(req)
+/**
+ * @author hjs
+ * @created: 19/10/2011
+ */
 
-  def unapply(ct: String): Option[Lang] =
-    Lang(ct)
-    
+class EchoPlan {
+  import collection.JavaConversions._
+
+  lazy val plan = unfiltered.filter.Planify({
+    case req@Path(path) if path startsWith "/test/http/echo" => {
+      Ok ~> PlainTextContent ~> {
+        val headers = req.underlying.getHeaderNames()
+        val result = for (name <- headers ;
+             val nameStr = name.asInstanceOf[String]
+        ) yield {
+          nameStr + ": " + req.underlying.getHeader(nameStr)+"\r\n"
+        }
+        ResponseString(result.mkString+ "\r\n" + new BufferedSource(req.inputStream).mkString)
+      }
+    }
+
+  })
 }

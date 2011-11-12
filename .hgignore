@@ -18,3 +18,5 @@ sbt-launch*.jar
 *.orig
 .cache
 .settings
+.idea
+.idea_modules

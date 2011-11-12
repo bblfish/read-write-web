@@ -5,28 +5,36 @@ import Keys._
 // they are pulled only if used
 object Dependencies {
   val specs = "org.scala-tools.testing" %% "specs" % "1.6.9" % "test"
-  val dispatch = "net.databinder" %% "dispatch-http" % "0.8.5" % "test"
-  val unfiltered_filter = "net.databinder" %% "unfiltered-filter" % "0.4.1"
-  val unfiltered_jetty = "net.databinder" %% "unfiltered-jetty" % "0.4.1"
+  val dispatch_http = "net.databinder" %% "dispatch-http" % "0.8.5" 
+  val unfiltered_version = "0.5.1"
+  val unfiltered_filter = "net.databinder" %% "unfiltered-filter" % unfiltered_version 
+  val unfiltered_jetty = "net.databinder" %% "unfiltered-jetty" % unfiltered_version 
+  val unfiltered_netty = "net.databinder" %% "unfiltered-netty" % unfiltered_version 
   // val unfiltered_spec = "net.databinder" %% "unfiltered-spec" % "0.4.1" % "test"
   val ivyUnfilteredSpec =
     <dependencies>
-      <dependency org="net.databinder" name="unfiltered-spec_2.9.1" rev="0.4.1">
+      <dependency org="net.databinder" name="unfiltered-spec_2.9.1" rev={unfiltered_version}>
         <exclude org="net.databinder" module="dispatch-mime_2.9.0-1"/>
       </dependency>
     </dependencies>
-  val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.5.8"
+  val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.6"
   val antiXML = "com.codecommit" %% "anti-xml" % "0.4-SNAPSHOT" % "test"
   val jena = "com.hp.hpl.jena" % "jena" % "2.6.4"
   val arq = "com.hp.hpl.jena" % "arq" % "2.8.8"
   val grizzled = "org.clapper" %% "grizzled-scala" % "1.0.8" % "test"
   val scalaz = "org.scalaz" %% "scalaz-core" % "6.0.2"
+
   val argot =  "org.clapper" %% "argot" % "0.3.5"
+  val guava =  "com.google.guava" % "guava" % "10.0.1"
+//  val restlet = "org.restlet.dev" % "org.restlet" % "2.1-SNAPSHOT"
+//  val restlet_ssl = "org.restlet.dev" % "org.restlet.ext.ssl" % "2.1-SNAPSHOT"
+  val jsslutils = "org.jsslutils" % "jsslutils" % "1.0.5"
 }
 
 // some usefull repositories
 object Resolvers {
   val novus = "repo.novus snaps" at "http://repo.novus.com/snapshots/"
+  val mavenLocal = "Local Maven Repository" at "file://" + (Path.userHome / ".m2" / "repository").absolutePath
 }
 
 // general build settings
@@ -71,23 +79,30 @@ object YourProjectBuild extends Build {
 
   val projectSettings =
     Seq(
+      resolvers += mavenLocal,
       resolvers += ScalaToolsReleases,
       resolvers += ScalaToolsSnapshots,
       libraryDependencies += specs,
 //      libraryDependencies += unfiltered_spec,
       ivyXML := ivyUnfilteredSpec,
-      libraryDependencies += dispatch,
+      libraryDependencies += dispatch_http,
       libraryDependencies += unfiltered_filter,
       libraryDependencies += unfiltered_jetty,
+      libraryDependencies += unfiltered_netty,
 //      libraryDependencies += slf4jSimple,
       libraryDependencies += jena,
       libraryDependencies += arq,
       libraryDependencies += antiXML,
       libraryDependencies += grizzled,
       libraryDependencies += scalaz,
-      jarName in assembly := "read-write-web.jar",
-      libraryDependencies += argot
+      libraryDependencies += jsslutils,
+      libraryDependencies += argot,
+      libraryDependencies += guava,
+
+      jarName in assembly := "read-write-web.jar"
     )
+
+
 
   lazy val project = Project(
     id = "read-write-web",

@@ -8,7 +8,6 @@ import java.net.URL
 
 import org.slf4j.{Logger, LoggerFactory}
 
-import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.query.{Query, QueryExecution, QueryExecutionFactory}
 import com.hp.hpl.jena.update.UpdateAction
 import Query.{QueryTypeSelect => SELECT,
@@ -16,10 +15,12 @@ import Query.{QueryTypeSelect => SELECT,
               QueryTypeConstruct => CONSTRUCT,
               QueryTypeDescribe => DESCRIBE}
 
-import scalaz.{Resource=>SzResource}
+import scalaz.{Resource => _}
 import unfiltered.request._
 import unfiltered.Cycle
 import unfiltered.response._
+
+import com.hp.hpl.jena.rdf.model.Model
 
 //object ReadWriteWeb {
 //
@@ -33,12 +34,12 @@ import unfiltered.response._
  * The ReadWriteWeb intent.
  * It is independent of jetty or netty
  */
-trait ReadWriteWeb[Req,Res] {
+trait ReadWriteWeb[Req, Res] {
   val rm: ResourceManager
   implicit def manif: Manifest[Req]
-  implicit val authz: AuthZ[Req,Res] = new NullAuthZ[Req,Res]
+  implicit val authz: AuthZ[Req, Res] = new NullAuthZ[Req, Res]
   // a few type short cuts to make it easier to reason with the code here
-  // one may want to generalise this code so that it does not depend so strongly on servlets.
+  // one may want to generalize this code so that it does not depend so strongly on servlets.
 //  type Request = HttpRequest[Req]
 //  type Response = ResponseFunction[Res]
 
@@ -50,7 +51,7 @@ trait ReadWriteWeb[Req,Res] {
    * ( Note that we don't want to protect this intent, since that would be to apply the security to all other applications,
    * many of which may want different authorization implementations )
    */
-  def intent : Cycle.Intent[Req,Res] = {
+  def intent : Cycle.Intent[Req, Res] = {
       case req @ Path(path) if path startsWith rm.basePath => authz.protect(rwwIntent)(manif)(req)
   }
 
